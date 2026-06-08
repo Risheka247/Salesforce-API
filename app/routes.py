@@ -301,16 +301,26 @@ class BatchInfo(Resource):
     @require_hmac("core")
     def get(self):
         """Get Salesforce org metadata and API quota info"""
-        from app.auth.salesforce_auth import create_token_manager
+        from app.auth.salesforce_auth import create_token_manager, MockTokenManager
         token_manager = create_token_manager()
-        token, instance_url = token_manager.get_token()
+
+        if isinstance(token_manager, MockTokenManager):
+            instance_url = "https://mock-org.salesforce.com"
+            mode = "mock"
+        else:
+            try:
+                _, instance_url = token_manager.get_token()
+                mode = "live"
+            except Exception as e:
+                return {"error": f"Could not connect to Salesforce: {str(e)}"}, 503
 
         return {
             "org": {
                 "instance_url": instance_url,
                 "api_version": settings.SF_API_VERSION,
-                "username": settings.SF_USERNAME,
+                "username": settings.SF_USERNAME or "mock-user@example.com",
                 "login_url": settings.SF_LOGIN_URL,
+                "mode": mode,
             },
             "service": {
                 "max_concurrent_scans": settings.MAX_CONCURRENT_SCANS,

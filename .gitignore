@@ -1,0 +1,6 @@
+
+salesforce_dev.db
+.env
+__pycache__/
+*.pyc
+*.db
