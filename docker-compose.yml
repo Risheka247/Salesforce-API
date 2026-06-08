@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  salesforce-service:
+    build: .
+    container_name: bd-salesforce-service
+    ports:
+      - "5710:5710"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: salesforce-postgres
+    environment:
+      POSTGRES_DB: salesforce_dev
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+# ──────────────────────────────────────────────────────
+# Run with Docker:
+#   docker-compose up --build
+#   Open: http://localhost:5710/docs
+#
+# Run locally (without Docker):
+#   pip install -r requirements.txt
+#   python run.py
+#   Open: http://localhost:5710/docs
+# ──────────────────────────────────────────────────────
